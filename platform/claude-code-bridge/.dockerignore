@@ -1,0 +1,12 @@
+.git
+.claude
+!workspace
+!workspace/.claude
+!workspace/.claude/**
+!workspace/scripts
+!workspace/scripts/**
+node_modules
+dist
+data
+docs
+npm-debug.log*

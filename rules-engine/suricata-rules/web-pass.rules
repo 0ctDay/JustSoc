@@ -1,0 +1,1 @@
+pass http any any -> any [9200,5601,9092] (msg:"JustSoc PASS Elasticsearch and Kibana"; flow:to_server,established; metadata: selk_category 白名单放行; sid:1095001; rev:1;)

@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "elasticsearch": {
+      "command": "node",
+      "args": ["scripts/es-mcp-server.mjs"],
+      "env": {
+        "SELK_ES_ENDPOINT": "http://elasticsearch:9200"
+      }
+    }
+  }
+}

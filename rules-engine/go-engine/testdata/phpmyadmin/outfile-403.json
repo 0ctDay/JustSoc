@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-05-07T14:00:01Z",
+  "event_type": "alert",
+  "src_ip": "10.4.1.11",
+  "dest_ip": "10.4.1.21",
+  "src_port": 43002,
+  "dest_port": 80,
+  "payload_printable": "POST /phpmyadmin/db_sql.php HTTP/1.1\r\n\r\nsql_query=SELECT+%27test%27+INTO+OUTFILE+%27/var/www/html/shell.php%27",
+  "alert": {
+    "signature": "phpMyAdmin outfile",
+    "signature_id": 1002193,
+    "severity": 1
+  },
+  "correlated_http": {
+    "http": {
+      "http_method": "POST",
+      "url": "/phpmyadmin/db_sql.php",
+      "hostname": "target.local",
+      "status": 403,
+      "length": 96
+    }
+  }
+}

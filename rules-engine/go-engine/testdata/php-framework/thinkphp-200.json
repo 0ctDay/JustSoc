@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-05-07T12:00:04Z",
+  "event_type": "alert",
+  "src_ip": "10.2.1.14",
+  "dest_ip": "10.2.1.22",
+  "src_port": 41005,
+  "dest_port": 8080,
+  "payload_printable": "GET /index.php?s=/index/\\think\\app/invokefunction&function=call_user_func_array&vars[0]=phpinfo HTTP/1.1",
+  "alert": {
+    "signature": "ThinkPHP invokefunction",
+    "signature_id": 1002151,
+    "severity": 1
+  },
+  "correlated_http": {
+    "http": {
+      "http_method": "GET",
+      "url": "/index.php?s=/index/\\think\\app/invokefunction&function=call_user_func_array&vars[0]=phpinfo",
+      "hostname": "target.local",
+      "status": 200,
+      "length": 180
+    }
+  }
+}

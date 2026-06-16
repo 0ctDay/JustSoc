@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-05-07T14:00:00Z",
+  "event_type": "alert",
+  "src_ip": "10.4.1.10",
+  "dest_ip": "10.4.1.20",
+  "src_port": 43001,
+  "dest_port": 8080,
+  "payload_printable": "POST /scriptText HTTP/1.1\r\n\r\nprintln(new ProcessBuilder('id').start().text)",
+  "alert": {
+    "signature": "Jenkins script console",
+    "signature_id": 1002191,
+    "severity": 1
+  },
+  "correlated_http": {
+    "http": {
+      "http_method": "POST",
+      "url": "/scriptText",
+      "hostname": "target.local",
+      "status": 200,
+      "length": 120
+    }
+  }
+}

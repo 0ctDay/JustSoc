@@ -1,0 +1,257 @@
+rules:
+  - id: engine.sqli.blind.sleep.001
+    category: sqli
+    stage: attempt
+    reason: blind_sqli_timing_payload_detected
+    success_signal: true
+    match:
+      fields: [payload_printable, http_url]
+      any:
+        - sleep(
+        - benchmark(
+        - waitfor delay
+        - pg_sleep(
+        - extractvalue(
+        - updatexml(
+
+  - id: engine.log4j.callback.seed.001
+    category: log4j
+    stage: attempt
+    reason: jndi_payload_detected
+    success_signal: false
+    match:
+      fields: [payload_printable, http_url]
+      any:
+        - "${jndi:"
+        - "${lower:j}"
+        - "${::-j}"
+      all:
+        - any: ["%24%7b"]
+        - any: ["jndi"]
+
+  - id: engine.path.read.sensitive.001
+    category: file_read
+    stage: attempt
+    reason: sensitive_file_target_detected
+    match:
+      fields: [payload_printable, http_url]
+      all:
+        - any: ["../", "%2e%2e", "%252e%252e", "..\\"]
+        - any: ["/etc/passwd", "/etc/shadow", "win.ini", "web.xml", "application.properties", ".git/config", ".env"]
+
+  - id: engine.cmdi.exec.001
+    category: cmdi
+    stage: attempt
+    reason: command_injection_payload_detected
+    match:
+      fields: [payload_printable, http_url]
+      all:
+        - any: ["&&", ";", "|", "$()", "${ifs}", "%0a"]
+        - any: ["curl", "wget", "powershell", "certutil", "whoami", "/bin/sh", "bash -c", "cmd.exe"]
+
+  - id: engine.xss.script.001
+    category: xss
+    stage: attempt
+    reason: xss_script_payload_detected
+    match:
+      fields: [payload_printable, http_url]
+      any:
+        - "<script"
+        - "%3cscript"
+        - "javascript:"
+        - "onerror="
+        - "onload="
+        - "srcdoc="
+
+  - id: engine.rce.expression.001
+    category: rce
+    stage: attempt
+    reason: expression_or_template_exec_detected
+    success_signal: true
+    match:
+      fields: [payload_printable, http_url]
+      any:
+        - "Runtime.getRuntime().exec"
+        - "ProcessBuilder("
+        - "${T("
+        - "%{"
+        - "ognl"
+        - "memberaccess"
+        - "{{"
+        - "__globals__"
+        - "<!DOCTYPE"
+        - "<!ENTITY"
+        - "169.254.169.254"
+        - "gopher://"
+
+  - id: engine.fastjson.gadget.001
+    category: fastjson
+    stage: attempt
+    reason: fastjson_gadget_detected
+    success_signal: true
+    match:
+      fields: [payload_printable, http_url]
+      any:
+        - '"@type"'
+        - "JdbcRowSetImpl"
+        - "JndiObjectFactory"
+        - "ldap://"
+        - "rmi://"
+        - "\\u0040type"
+        - "TemplatesImpl"
+
+  - id: engine.upload.webshell.001
+    category: upload
+    stage: attempt
+    reason: upload_webshell_indicator_detected
+    match:
+      fields: [payload_printable, http_url]
+      all:
+        - any: ["multipart/form-data", "filename="]
+        - any: [".php", ".jsp", ".jspx", ".aspx", ".war", "<?php", "shell.php", "cmd.jsp", "filename*=UTF-8''"]
+
+  - id: engine.struts2.ognl.001
+    category: rce
+    stage: attempt
+    reason: struts2_ognl_payload_detected
+    success_signal: true
+    match:
+      fields: [payload_printable, http_url]
+      any:
+        - "#memberaccess"
+        - "@java.lang.runtime@"
+        - "servletactioncontext"
+        - "ognlcontext"
+        - ".action"
+        - "redirectaction:"
+        - "xwork"
+
+  - id: engine.spring.framework.001
+    category: rce
+    stage: attempt
+    reason: spring_framework_exploit_pattern_detected
+    success_signal: true
+    match:
+      fields: [payload_printable, http_url]
+      any:
+        - "class.module.classloader.resources.context.parent.pipeline.first.pattern"
+        - "spring.cloud.function.routing-expression"
+        - "/actuator/gateway"
+        - "/actuator/env"
+        - "/actuator/heapdump"
+        - "t(java.lang.runtime)"
+
+  - id: engine.phpframework.rce.001
+    category: rce
+    stage: attempt
+    reason: php_framework_exploit_pattern_detected
+    success_signal: true
+    match:
+      fields: [payload_printable, http_url]
+      any:
+        - "invokefunction"
+        - "call_user_func_array"
+        - "vars[0]"
+        - "vars%5b0%5d"
+        - "/php-cgi"
+        - "/cgi-bin/php"
+        - "auto_prepend_file=php://input"
+        - "allow_url_include=1"
+
+  - id: engine.confluence.ognl.001
+    category: rce
+    stage: attempt
+    reason: confluence_ognl_payload_detected
+    success_signal: true
+    match:
+      fields: [payload_printable, http_url]
+      any:
+        - "/pages/doenterpagevariables.action"
+        - "/pages/createpage-entervariables.action"
+        - "/wiki/pages/doenterpagevariables.action"
+        - "querystring="
+        - "@java.lang.runtime@"
+        - "confluence"
+
+  - id: engine.weblogic.rce.001
+    category: rce
+    stage: attempt
+    reason: weblogic_exploit_pattern_detected
+    success_signal: true
+    match:
+      fields: [payload_printable, http_url]
+      any:
+        - "/console/"
+        - "console.portal"
+        - "_nfpb=true"
+        - "_pagelabel="
+        - "/wls-wsat/"
+        - "t3://"
+        - "weblogic"
+
+  - id: engine.exchange.proxy.001
+    category: rce
+    stage: attempt
+    reason: exchange_proxy_pattern_detected
+    success_signal: true
+    match:
+      fields: [payload_printable, http_url]
+      any:
+        - "x-beresource="
+        - "x-anonresource=true"
+        - "x-anonresource-backend="
+        - "x-calculatedbetarget:"
+        - "/ecp/"
+        - "/autodiscover/autodiscover.json"
+        - "/mapi/nspi"
+
+  - id: engine.jenkins.script.001
+    category: rce
+    stage: attempt
+    reason: jenkins_script_console_detected
+    success_signal: true
+    match:
+      fields: [payload_printable, http_url]
+      all:
+        - any: ["/script", "/scripttext"]
+        - any: ["groovy", "hudson.model", "jenkins.model", "println("]
+
+  - id: engine.phpmyadmin.sql.001
+    category: file_read
+    stage: attempt
+    reason: phpmyadmin_sql_file_operation_detected
+    success_signal: true
+    match:
+      fields: [payload_printable, http_url]
+      all:
+        - any: ["/phpmyadmin/", "/pma/"]
+        - any: ["sql_query=", "into outfile", "into dumpfile", "load_file("]
+
+  - id: engine.wordpress.exploit.001
+    category: upload
+    stage: attempt
+    reason: wordpress_exploit_pattern_detected
+    success_signal: false
+    match:
+      fields: [payload_printable, http_url]
+      any:
+        - "/wp-admin/admin-ajax.php"
+        - "/xmlrpc.php"
+        - "php://filter"
+        - "base64_decode"
+        - "/wp-content/plugins/"
+        - "/wp-content/themes/"
+
+  - id: engine.drupal.render.001
+    category: rce
+    stage: attempt
+    reason: drupal_render_payload_detected
+    success_signal: true
+    match:
+      fields: [payload_printable, http_url]
+      any:
+        - "#post_render"
+        - "#markup"
+        - "drupalgeddon"
+        - "user/register"
+        - "user/password"

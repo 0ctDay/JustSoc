@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Claude Code Bridge</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow">JustSoc / Claude Code Bridge</div>
+          <h1>Web 涓嬪彂 Claude Code 浠诲姟锛屽苟鎶婅緭鍏ヨ緭鍑哄拰浜や簰閮芥敹鍥炴潵</h1>
+          <p>
+            杩欎釜瀛愰」鐩洿鎺ラ€氳繃 Claude Agent SDK 椹卞姩鍐呯疆 Claude Code锛屽苟榛樿鎸傝浇浠撳簱閲岀殑
+            Elasticsearch MCP銆傚乏渚ц礋璐ｈ捣浠诲姟鍜岄厤缃繍琛屾椂鐜鍙橀噺锛屽彸渚ц礋璐ｇ湅娴佸紡杈撳嚭銆佺画鑱婂拰瀹℃壒銆?          </p>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-card">
+            <span class="stat-label">API First</span>
+            <span class="stat-value">HTTP + SSE</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Runtime</span>
+            <span class="stat-value">Node 22 / TS</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">MCP</span>
+            <span class="stat-value">Elasticsearch</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="workspace-grid">
+        <aside class="sidebar">
+          <section class="panel panel-form">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">浠诲姟閰嶇疆</div>
+                <div class="panel-subtitle">API 涓轰富锛屽墠绔彧鍋氬姛鑳介獙璇併€?/div>
+              </div>
+              <button class="ghost-button" id="reset-form-button" type="button">閲嶇疆</button>
+            </div>
+
+            <form id="task-form" class="stack">
+              <label class="field">
+                <span>浠诲姟鏍囬</span>
+                <input id="task-title" class="input" type="text" placeholder="鍙€夛紝涓嶅～鍒欎粠棣栨潯 prompt 鎴彇" />
+              </label>
+
+              <label class="field">
+                <span>棣栨潯 Prompt</span>
+                <textarea id="task-prompt" class="textarea textarea-large" placeholder="渚嬪锛氭鏌?platform 鐩綍閲岀殑 API 璁捐闂锛屽苟缁欏嚭鍙墽琛屼慨澶嶆柟妗堛€?></textarea>
+              </label>
+
+              <label class="field">
+                <span>棰濆鍙闂洰褰?/span>
+                <input id="task-additional-directories" class="input" type="text" placeholder="鐢ㄨ嫳鏂囬€楀彿鍒嗛殧" />
+              </label>
+
+              <div class="field-grid four">
+                <label class="field">
+                  <span>Model</span>
+                  <input id="task-model" class="input" type="text" placeholder="鐣欑┖璧伴粯璁? />
+                </label>
+                <label class="field">
+                  <span>Permission</span>
+                  <select id="task-permission-mode" class="input">
+                    <option value="default">default</option>
+                    <option value="acceptEdits">acceptEdits</option>
+                    <option value="plan">plan</option>
+                    <option value="bypassPermissions">bypassPermissions</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Effort</span>
+                  <select id="task-effort" class="input">
+                    <option value="medium">medium</option>
+                    <option value="low">low</option>
+                    <option value="high">high</option>
+                    <option value="max">max</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Max Turns</span>
+                  <input id="task-max-turns" class="input" type="number" min="1" placeholder="鍙€? />
+                </label>
+              </div>
+
+              <label class="field">
+                <span>System Prompt Append</span>
+                <textarea id="task-system-prompt" class="textarea" placeholder="杩藉姞鍒?Claude Code 榛樿绯荤粺鎻愮ず璇嶆湯灏俱€?></textarea>
+              </label>
+
+              <div class="check-grid">
+                <label class="check-card">
+                  <input id="setting-user" type="checkbox" checked />
+                  <span>鍔犺浇 user settings</span>
+                </label>
+                <label class="check-card">
+                  <input id="setting-project" type="checkbox" checked />
+                  <span>鍔犺浇 project settings</span>
+                </label>
+                <label class="check-card">
+                  <input id="setting-local" type="checkbox" checked />
+                  <span>鍔犺浇 local settings</span>
+                </label>
+                <label class="check-card">
+                  <input id="task-strict-mcp" type="checkbox" />
+                  <span>strict MCP config</span>
+                </label>
+              </div>
+
+              <div class="section-divider">
+                <div>
+                  <div class="section-title">Claude 杩愯鏃剁幆澧冨彉閲?/div>
+                  <div class="section-subtitle">杩欓噷甯哥敤浜?API Key銆佷唬鐞嗐€佽皟璇曞紑鍏崇瓑銆傚€间笉浼氫粠鍚庣鍘熸牱鍥炴樉銆?/div>
+                </div>
+                <button class="ghost-button" id="add-env-button" type="button">鏂板鍙橀噺</button>
+              </div>
+              <div id="env-list" class="stack compact"></div>
+
+              <div class="section-divider">
+                <div>
+                  <div class="section-title">Elasticsearch MCP</div>
+                  <div class="section-subtitle">榛樿鎸傝浇 `workspace/scripts/es-mcp-server.mjs`銆?/div>
+                </div>
+              </div>
+
+              <div class="check-grid single">
+                <label class="check-card">
+                  <input id="es-enabled" type="checkbox" checked />
+                  <span>鍚敤鍐呯疆 ES MCP</span>
+                </label>
+              </div>
+
+              <div class="field-grid two">
+                <label class="field">
+                  <span>ES Endpoint</span>
+                  <input id="es-endpoint" class="input" type="text" />
+                </label>
+                <label class="field">
+                  <span>ES API Key</span>
+                  <input id="es-api-key" class="input" type="password" placeholder="鍙€? />
+                </label>
+              </div>
+
+              <div class="field-grid two">
+                <label class="field">
+                  <span>Bearer Token</span>
+                  <input id="es-bearer-token" class="input" type="password" placeholder="鍙€? />
+                </label>
+                <label class="field">
+                  <span>Username</span>
+                  <input id="es-username" class="input" type="text" placeholder="鍙€? />
+                </label>
+              </div>
+
+              <div class="field-grid two">
+                <label class="field">
+                  <span>Password</span>
+                  <input id="es-password" class="input" type="password" placeholder="鍙€? />
+                </label>
+                <label class="field">
+                  <span>Custom Headers JSON</span>
+                  <input id="es-headers-json" class="input" type="text" placeholder='渚嬪锛歿"x-found-cluster":"example"}' />
+                </label>
+              </div>
+
+              <div class="field-grid two">
+                <label class="field">
+                  <span>Allowed Tools</span>
+                  <input id="task-allowed-tools" class="input" type="text" value="mcp__elasticsearch__*" />
+                </label>
+                <label class="field">
+                  <span>Disallowed Tools</span>
+                  <input id="task-disallowed-tools" class="input" type="text" placeholder="鐢ㄨ嫳鏂囬€楀彿鍒嗛殧" />
+                </label>
+              </div>
+
+              <div class="button-row">
+                <button id="start-task-button" class="primary-button" type="submit">鍒涘缓骞惰繍琛屼换鍔?/button>
+                <span id="form-status" class="inline-note"></span>
+              </div>
+            </form>
+          </section>
+
+          <section class="panel panel-list">
+            <div class="panel-header">
+              <div>
+                <div class="panel-title">浠诲姟鍒楄〃</div>
+                <div class="panel-subtitle">浼氭寜鏈€杩戞洿鏂版椂闂存帓搴忋€?/div>
+              </div>
+              <button class="ghost-button" id="refresh-tasks-button" type="button">鍒锋柊</button>
+            </div>
+            <div id="task-list" class="task-list"></div>
+          </section>
+        </aside>
+
+        <main class="main-pane">
+          <section class="panel panel-session">
+            <div class="panel-header session-header">
+              <div>
+                <div id="selected-task-title" class="panel-title">鏈€夋嫨浠诲姟</div>
+                <div id="selected-task-subtitle" class="panel-subtitle">鍏堝湪宸︿晶鍒涘缓浠诲姟锛屾垨浠庝换鍔″垪琛ㄤ腑閫夋嫨涓€涓凡鏈変换鍔°€?/div>
+              </div>
+              <div class="session-actions">
+                <span id="selected-task-status" class="status-badge status-idle">idle</span>
+                <button id="interrupt-task-button" class="ghost-button" type="button" disabled>涓柇杩愯</button>
+              </div>
+            </div>
+
+            <div id="selected-task-meta" class="meta-grid"></div>
+
+            <div id="transcript" class="transcript empty-state">
+              杩欓噷浼氭樉绀虹敤鎴疯緭鍏ャ€丆laude Code 杈撳嚭銆佸伐鍏峰鎵硅姹傚拰鏈€缁堢粨鏋溿€?            </div>
+          </section>
+
+          <section class="panel panel-interaction">

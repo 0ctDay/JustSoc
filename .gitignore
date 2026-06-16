@@ -1,0 +1,56 @@
+# ---- Secrets / local env ----
+.env
+.env.local
+.env.*.local
+platform/.env.local
+*.pem
+
+# ---- Claude Code local settings (keep skills/.mcp.json tracked) ----
+**/.claude/settings.json
+**/.claude/settings.local.json
+*.key
+
+# ---- Node / Next.js ----
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# ---- Go build cache ----
+.gocache/
+*.exe
+*.test
+*.out
+
+# ---- Build / deploy artifacts ----
+deploy.zip
+*.zip
+dist/
+build/
+bak/
+# keep prebuilt probe/engine binaries tracked
+!rules-engine/deploy/bin/
+!rules-engine/deploy/bin/**
+
+# ---- Logs ----
+*.log
+logs/
+# 例外：Next.js app 路由里名为 logs 的目录是页面/接口代码，不是日志输出，必须纳入版本控制
+!platform/app/**/logs/
+!platform/app/**/logs/**
+
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# ---- Local data ----
+platform/data/
+
+# ---- Local planning docs ----
+ai-automation-plan.md
+learn-situation-awareness-from-justsoc.md
+docs/learn-situation-awareness-from-justsoc.md

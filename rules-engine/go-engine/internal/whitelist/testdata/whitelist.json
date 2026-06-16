@@ -1,0 +1,16 @@
+{
+  "rules": [
+    {
+      "name": "ignore-health-check",
+      "src_ip": ["192.168.52.0/24"],
+      "dest_ip": ["192.168.52.148"],
+      "dest_port": [80],
+      "http_url_prefix": ["/healthz"]
+    },
+    {
+      "name": "ignore-internal-ping",
+      "dest_ip": ["10.10.10.10"],
+      "http_url": ["/internal/ping"]
+    }
+  ]
+}

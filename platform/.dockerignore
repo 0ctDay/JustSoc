@@ -1,0 +1,17 @@
+node_modules
+.next
+.git
+.claude
+npm-debug.log*
+Dockerfile
+docker-compose*.yml
+deploy
+*.local
+tsconfig.tsbuildinfo
+
+# 镜像构建需要 supervisord 配置；deploy 其余内容仍排除
+!deploy/supervisord.conf
+
+# Bridge 运行需要 workspace/.claude(含 .mcp.json 与 skills)，上面的 .claude 会误删，这里放行
+!claude-code-bridge/workspace/.claude
+!claude-code-bridge/workspace/.claude/**

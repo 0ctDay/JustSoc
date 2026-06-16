@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-05-07T14:00:02Z",
+  "event_type": "alert",
+  "src_ip": "10.4.1.12",
+  "dest_ip": "10.4.1.22",
+  "src_port": 43003,
+  "dest_port": 80,
+  "payload_printable": "POST /wp-admin/admin-ajax.php?action=upload_file HTTP/1.1\r\n\r\nphp://filter|base64_decode|shell",
+  "alert": {
+    "signature": "WordPress admin ajax",
+    "signature_id": 1002195,
+    "severity": 2
+  },
+  "correlated_http": {
+    "http": {
+      "http_method": "POST",
+      "url": "/wp-admin/admin-ajax.php?action=upload_file",
+      "hostname": "target.local",
+      "status": 302,
+      "length": 110
+    }
+  }
+}

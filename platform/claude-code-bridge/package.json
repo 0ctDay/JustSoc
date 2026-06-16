@@ -1,0 +1,24 @@
+{
+  "name": "justsoc-claude-code-bridge",
+  "private": true,
+  "version": "0.1.0",
+  "description": "API-first Claude Code bridge with built-in Elasticsearch MCP wiring and a lightweight web demo.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.2.111"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}
+

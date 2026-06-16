@@ -1,0 +1,2 @@
+# Shell 脚本强制 LF，避免在 Linux 上因 CRLF 无法执行
+*.sh text eol=lf

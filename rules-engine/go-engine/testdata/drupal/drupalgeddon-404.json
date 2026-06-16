@@ -1,0 +1,23 @@
+{
+  "timestamp": "2026-05-07T14:00:03Z",
+  "event_type": "alert",
+  "src_ip": "10.4.1.13",
+  "dest_ip": "10.4.1.23",
+  "src_port": 43004,
+  "dest_port": 80,
+  "payload_printable": "POST /user/register HTTP/1.1\r\n\r\nmail[#markup]=drupalgeddon&render[#post_render][]=exec",
+  "alert": {
+    "signature": "Drupal render exploit",
+    "signature_id": 1002197,
+    "severity": 1
+  },
+  "correlated_http": {
+    "http": {
+      "http_method": "POST",
+      "url": "/user/register",
+      "hostname": "target.local",
+      "status": 404,
+      "length": 80
+    }
+  }
+}

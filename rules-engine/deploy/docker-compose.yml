@@ -1,0 +1,61 @@
+# =============================================================================
+# JustSoc 探针层 — 消息总线 (Kafka) 部署
+#
+# Kafka 随探针一同部署在边缘传感器主机上（与 Suricata + probe + engine + monitor 同机）。
+# 应用层 (ELK / platform，见仓库根 docker-compose.yml) 通过本机对外地址
+#   ${KAFKA_EXTERNAL_HOST}:${KAFKA_EXTERNAL_PORT}  (SASL_PLAINTEXT / PLAIN)
+# 远程消费 selk.alerts.enriched。
+#
+# 地址与密码集中在本目录的 .env 中配置（见 .env.example），需与应用层 .env 保持一致。
+# =============================================================================
+
+services:
+  kafka:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: kafka-sasl-patched:3.7.0
+    container_name: kafka
+    restart: unless-stopped
+    ports:
+      - "${KAFKA_EXTERNAL_PORT:-9092}:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: SASL_PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      # 对外通告地址：probe/engine(同机) 与 logstash(远程) 均经此地址接入
+      KAFKA_ADVERTISED_LISTENERS: SASL_PLAINTEXT://${KAFKA_EXTERNAL_HOST:-127.0.0.1}:${KAFKA_EXTERNAL_PORT:-9092}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: SASL_PLAINTEXT:SASL_PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: SASL_PLAINTEXT
+      KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
+      KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+      KAFKA_OPTS: -Djava.security.auth.login.config=/tmp/kafka_server_jaas.conf
+      # 凭据来源唯一：.env 的 KAFKA_SASL_USERNAME / KAFKA_SASL_PASSWORD
+      # （刻意不用 KAFKA_ 前缀，避免官方镜像把它写进 server.properties）
+      SASL_USERNAME: ${KAFKA_SASL_USERNAME:-kafka}
+      SASL_PASSWORD: ${KAFKA_SASL_PASSWORD:-<change-me>}
+    # 入口脚本挂载自 ./scripts/，避免 compose + yaml 双层 heredoc 转义踩坑
+    volumes:
+      - ./scripts:/selk-scripts:ro
+    entrypoint: ["/selk-scripts/kafka-entrypoint.sh"]
+
+  kafka-init-topics:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: kafka-sasl-patched:3.7.0
+    container_name: kafka-init-topics
+    depends_on:
+      - kafka
+    restart: "no"
+    environment:
+      SASL_USERNAME: ${KAFKA_SASL_USERNAME:-kafka}
+      SASL_PASSWORD: ${KAFKA_SASL_PASSWORD:-<change-me>}
+    volumes:
+      - ./scripts:/selk-scripts:ro
+    entrypoint: ["/selk-scripts/kafka-init-topics.sh"]

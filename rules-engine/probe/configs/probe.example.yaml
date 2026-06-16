@@ -1,0 +1,49 @@
+probe:
+  sensor_id: linux-sensor-01
+  host_override: ""
+  mode: managed
+  output: kafka
+  interface: CHANGE_ME
+  interfaces: []
+  start_position: end
+  tags:
+    site: linux-lab
+    role: ids-probe
+
+suricata:
+  binary: "suricata"
+  config_path: "/etc/suricata/suricata.yaml"
+  rule_dir: ""
+  eve_path: "/var/log/suricata/eve.json"
+  log_dir: "/var/log/suricata"
+  interface: CHANGE_ME
+  interfaces: []
+  pcap_file: ""
+  extra_args: []
+  logs:
+    dns: false
+    flow: false
+    http:
+      enabled: true
+      request_body: true
+      response_body: true
+      body_length_limit: 0
+  whitelist: []
+
+kafka:
+  brokers: []
+  topic: selk.suricata.eve
+  client_id: selk-probe-linux-sensor-01
+  username: "kafka"
+  password: "CHANGE_ME"
+  batch_bytes: 1048576
+  batch_timeout: 1s
+  write_timeout: 10s
+  required_acks: 1
+
+health:
+  enabled: true
+  listen_addr: :8081
+
+logging:
+  level: debug

@@ -1,0 +1,134 @@
+# =============================================================================
+# JustSoc — 应用层统一编排文件
+#
+# 本文件整合了原先分散的三份 compose：
+#   - docker-compose.yml                     (ELK：elasticsearch / logstash / kibana)
+#   - platform/docker-compose.platform.yml   (platform + platform-db)
+#
+# 说明：
+#   - Claude Code Bridge 已并入 platform 镜像（容器内 supervisord 同时跑 Next.js 与 Bridge），
+#     仅容器内 127.0.0.1:4317 互通，不再单独暴露端口。
+#   - Kafka 随探针部署，见 rules-engine/deploy/docker-compose.yml（边缘传感器主机）。
+#   - 本文件中的 logstash 作为远程消费者，经 ${KAFKA_BOOTSTRAP}
+#     (SASL_PLAINTEXT/PLAIN) 拉取 selk.alerts.enriched。
+#   - Kafka 地址与密码集中在 .env 统一配置（见 .env.example），
+#     须与探针侧 rules-engine/deploy/.env 中的取值保持一致。
+# =============================================================================
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # 应用层 — Elasticsearch / Logstash / Kibana
+  # ---------------------------------------------------------------------------
+  elasticsearch:
+    image: elasticsearch:8.12.2
+    container_name: elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+    ports:
+      - "9200:9200"
+    networks:
+      - elk
+
+  logstash:
+    image: logstash:8.12.2
+    container_name: logstash
+    restart: unless-stopped
+    volumes:
+      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    environment:
+      # 统一从 .env 读取远程 Kafka 总线地址与凭据，logstash.conf 内用 ${...} 引用
+      # KAFKA_BOOTSTRAP 指向探针侧 Kafka 对外地址 (KAFKA_EXTERNAL_HOST:PORT)
+      KAFKA_BOOTSTRAP: ${KAFKA_BOOTSTRAP:-127.0.0.1:9092}
+      KAFKA_SASL_USERNAME: ${KAFKA_SASL_USERNAME:-kafka}
+      KAFKA_SASL_PASSWORD: ${KAFKA_SASL_PASSWORD:-<change-me>}
+      ES_HOSTS: ${LOGSTASH_ES_HOSTS:-http://elasticsearch:9200}
+    depends_on:
+      - elasticsearch
+    networks:
+      - elk
+
+  kibana:
+    image: kibana:8.12.2
+    container_name: kibana
+    restart: unless-stopped
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - elk
+
+  # ---------------------------------------------------------------------------
+  # 应用层 — 控制面数据库 (PostgreSQL)
+  # ---------------------------------------------------------------------------
+  platform-db:
+    image: postgres:16-alpine
+    container_name: justsoc-platform-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-selk_controlplane}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-<change-me>}
+    volumes:
+      - platform_pg_data:/var/lib/postgresql/data
+      - ./platform/deploy/postgres/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - elk
+
+  # ---------------------------------------------------------------------------
+  # 应用层 — JustSoc Platform (Next.js 控制台)
+  # ---------------------------------------------------------------------------
+  platform:
+    build:
+      context: ./platform
+      dockerfile: Dockerfile
+    image: justsoc-platform:latest
+    container_name: justsoc-platform
+    restart: unless-stopped
+    depends_on:
+      platform-db:
+        condition: service_healthy
+    environment:
+      SELK_PLATFORM_DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-<change-me>}@platform-db:5432/${POSTGRES_DB:-selk_controlplane}
+      # 会话令牌签名密钥（≥24 字符）；由 start.sh 写入 .env，未设置则登录会报错
+      SELK_AUTH_SECRET: ${SELK_AUTH_SECRET:-}
+      # 会话 cookie 是否加 Secure；留空=按请求协议自动判断（HTTP 不加，HTTPS/反代加）
+      # 纯 HTTP 访问务必留空或 false，否则登录后会被重定向回 /login
+      SELK_AUTH_COOKIE_SECURE: ${SELK_AUTH_COOKIE_SECURE:-}
+      SELK_ELASTICSEARCH_URL: ${SELK_ELASTICSEARCH_URL:-http://elasticsearch:9200}
+      SELK_ELASTICSEARCH_USERNAME: ${SELK_ELASTICSEARCH_USERNAME:-}
+      SELK_ELASTICSEARCH_PASSWORD: ${SELK_ELASTICSEARCH_PASSWORD:-}
+      SELK_DEFAULT_USER_KEY: ${SELK_DEFAULT_USER_KEY:-default}
+      SELK_AI_BASE_URL: ${SELK_AI_BASE_URL:-}
+      SELK_AI_API_KEY: ${SELK_AI_API_KEY:-}
+      SELK_AI_MODEL: ${SELK_AI_MODEL:-gpt-4o-mini}
+      SELK_RUNTIME_MONITOR_BASE_URL: ${SELK_RUNTIME_MONITOR_BASE_URL:-http://host.docker.internal:19091}
+      # ---- Claude Code Bridge（与平台同容器运行，仅容器内 127.0.0.1:4317）----
+      # Claude / Anthropic 凭据（按需在 .env 中提供）
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_BASE_URL: ${ANTHROPIC_BASE_URL:-}
+      # ES MCP 默认接入地址（覆盖 workspace/.claude/.mcp.json 中的默认值）
+      SELK_ES_ENDPOINT: ${BRIDGE_ES_ENDPOINT:-http://elasticsearch:9200}
+    ports:
+      - "${PLATFORM_PORT:-3000}:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - elk
+
+networks:
+  elk:
+
+volumes:
+  platform_pg_data:
